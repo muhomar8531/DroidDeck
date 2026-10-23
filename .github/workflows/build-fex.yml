@@ -10,6 +10,14 @@ on:
       - '.github/workflows/build-fex.yml'
   workflow_dispatch:
     inputs:
+      repo:
+        description: 'Git repository URL for FEX'
+        required: false
+        default: 'https://github.com/StonkGuy/FEX.git'
+      version:
+        description: 'Git ref/tag/branch to build'
+        required: false
+        default: 'eac-2610'
       thunks:
         description: 'Build the host thunks (Vulkan/GL/X11/... to the runtime arm64 libraries)'
         required: false
@@ -33,11 +41,13 @@ jobs:
       - name: Build in Arch Linux ARM
         # Inputs reach the shell as environment variables, never pasted into the script.
         env:
+          FEX_REPO: ${{ inputs.repo || 'https://github.com/StonkGuy/FEX.git' }}
+          FEX_VERSION: ${{ inputs.version || 'eac-2610' }}
           FEX_EXTRA_CXXFLAGS: ${{ inputs.cxxflags }}
           FEX_THUNKS: ${{ inputs.thunks == 'true' && '1' || '0' }}
         run: |
           set -euo pipefail
-          docker run --rm -e FEX_EXTRA_CXXFLAGS="$FEX_EXTRA_CXXFLAGS" -e FEX_THUNKS="$FEX_THUNKS" -v "$PWD:/work" -w /work menci/archlinuxarm:base-devel bash tools/fex/build-in-arch.sh
+          docker run --rm -e FEX_REPO="$FEX_REPO" -e FEX_VERSION="$FEX_VERSION" -e FEX_EXTRA_CXXFLAGS="$FEX_EXTRA_CXXFLAGS" -e FEX_THUNKS="$FEX_THUNKS" -v "$PWD:/work" -w /work menci/archlinuxarm:base-devel bash tools/fex/build-in-arch.sh
           sudo chown -R "$(id -u):$(id -g)" .
       - uses: actions/upload-artifact@v4
         with:
