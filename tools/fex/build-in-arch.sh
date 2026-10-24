@@ -2,7 +2,8 @@
 # Runs inside an Arch Linux ARM container (menci/archlinuxarm:base-devel) on an arm64 runner. Arch Linux ARM ships
 # no FEX package and FEX publishes no Linux binaries.
 set -euxo pipefail
-VERSION=${FEX_VERSION:-FEX-2610}
+REPO=${FEX_REPO:-https://github.com/StonkGuy/FEX.git}
+VERSION=${FEX_VERSION:-eac-2610}
 WORK=/work
 cd "$WORK"
 grep -q '^DisableSandbox' /etc/pacman.conf || sed -i 's/^\[options\]/[options]\nDisableSandbox/' /etc/pacman.conf
@@ -38,7 +39,7 @@ CONF
   ls "$X86ROOT/usr/include" | head -5
 fi
 
-rm -rf fex-src out && git clone -q --depth 1 --branch "$VERSION" --recurse-submodules --shallow-submodules https://github.com/FEX-Emu/FEX.git fex-src
+rm -rf fex-src out && git clone -q --depth 1 --branch "$VERSION" --recurse-submodules --shallow-submodules "$REPO" fex-src
 for p in tools/fex/patches/*.patch; do patch -d fex-src -p1 --no-backup-if-mismatch < "$p"; done
 # FEX's x86 toolchain files assume an x86 build machine; here the guest thunks need the x86 sysroot too.
 # Arch's clang adds stack protection; its canary load in a guest thunk's prologue clobbered r11 (the host function).
